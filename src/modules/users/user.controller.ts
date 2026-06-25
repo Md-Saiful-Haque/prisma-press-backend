@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import httpStatus from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
+import { sendResponse } from "../../utils/sendResponse";
 
 
 
@@ -34,14 +35,21 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
 
         const user = await userService.createUserIntoDB(payload)
 
-        res.status(httpStatus.CREATED).json({
-            success: true,
-            statusCode: httpStatus.CREATED,
-            message: "User registered successfully",
-            data: {
-                user
-            }
-        });
+        // res.status(httpStatus.CREATED).json({
+        //     success: true,
+        //     statusCode: httpStatus.CREATED,
+        //     message: "User registered successfully",
+        //     data: {
+        //         user
+        //     }
+        // });
+
+        sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "User registered successfully",
+        data: { user }
+    })
 })
 
 export const userController = {

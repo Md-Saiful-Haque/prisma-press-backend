@@ -4,6 +4,8 @@ import express, { Application, Request, Response } from "express";
 import config from "./config";
 import { prisma } from "./lib/prisma";
 import { userRouter } from "./modules/users/user.route";
+import { authRotes } from "./modules/auth/auth.route";
+
 
 
 const app: Application = express();
@@ -22,5 +24,6 @@ app.get("/", async (req: Request, res: Response) => {
 })
 
 app.use("/api/users", userRouter)
+app.use("/api/auth", authRotes)
 
 export default app;
