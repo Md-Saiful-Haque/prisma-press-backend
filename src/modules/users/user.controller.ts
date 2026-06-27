@@ -3,6 +3,9 @@ import httpStatus from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import jwt from "jsonwebtoken"
+import config from "../../config";
+import { jwtUtils } from "../../utils/jwt";
 
 
 
@@ -52,6 +55,16 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     })
 })
 
+const getMyProfile = catchAsync (async (req: Request, res: Response, next: NextFunction) => {
+    const {accessToken} = req.cookies;
+    console.log(accessToken);
+    
+    const verifiedToken = jwtUtils.verifyToken(accessToken, config.jwt_access_secret)
+
+    const profile = await userService.getMyProfileFromDB(verifiedToken.id)
+})
+
 export const userController = {
-    createUser
+    createUser,
+    getMyProfile
 }
