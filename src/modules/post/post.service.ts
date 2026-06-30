@@ -1,3 +1,4 @@
+import { CommentStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
 import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface"
 
@@ -29,30 +30,76 @@ const getAllPosts = async () => {
 }
 
 const getPostById = async (postId: string) => {
-    const post = await prisma.post.findFirstOrThrow({
-        where: {
-            id: postId
-        }
-    })
+    // const post = await prisma.post.findFirstOrThrow({
+    //     where: {
+    //         id: postId
+    //     }
+    // })
 
-    const updatedPost = await prisma.post.update({
-        where: {
-            id: postId
-        },
-        data: {
-            views: {
-                increment: 1
-            }
-        },
-        include: {
-            author: {
-                omit: {
-                    password: true
+    // const updatedPost = await prisma.post.update({
+    //     where: {
+    //         id: postId
+    //     },
+    //     data: {
+    //         views: {
+    //             increment: 1
+    //         }
+    //     },
+    //     include: {
+    //         author: {
+    //             omit: {
+    //                 password: true
+    //             }
+    //         },
+    //         comments: true
+    //     }
+    // })
+
+    const transactionResult = await prisma.$transaction(
+        async (tx) => {
+            await tx.post.update({
+                where: {
+                    id: postId,
+                },
+                data: {
+                    views: {
+                        increment: 1
+                    },
                 }
-            },
-            comments: true
+            });
+
+            const post = await tx.post.findUniqueOrThrow({
+                where: {
+                    id: postId
+                },
+
+                include: {
+                    author: {
+                        omit: {
+                            password: true
+                        }
+                    },
+
+                    comments: {
+                        where: {
+                            status: CommentStatus.APPROVED
+                        },
+
+                        orderBy: {
+                            createdAt: "desc"
+                        }
+                    },
+
+                    _count: {
+                        select: {
+                            comments: true
+                        }
+                    }
+                }
+            });
+            return post
         }
-    })
+    )
 }
 
 const updatePost = async (postId: string, payload: IUpdatePostPayload, authorId: string, isAdmin: boolean) => {
