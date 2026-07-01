@@ -15,26 +15,98 @@ const createPost = async (payload: ICreatePostPayload, userId: string) => {
 const getAllPosts = async () => {
     const posts = await prisma.post.findMany(
         {
+            //  // filtering / exact match without AND Operator
+
             // where: {
             //     title: "My Fourth Post",
             //     content: Ronaldo
             // },
 
-            where: {
-                AND: [
+            // // filtering / exact match with AND Operator
+            // where: {
+            //     AND: [
+            //         {
+            //             title: "My Fourth Post",
+            //         },
+            //         {
+            //             content: "Ronaldo"
+            //         },
+            //         {
+            //             tags: {
+            //                 has: "typescript"
+            //             }
+            //         }
+            //     ]
+            // },
+
+            // searching / partial match
+            // where: {
+            //     title: {
+            //         contains: "Ronaldo",
+            //         mode: "insensitive"
+            //     },
+            //     // X -> Not ideal for partial match
+            //     //      content : {
+            //     //          contains : "Ronaldo"
+            //     //      }
+            // },
+
+            // where: {
+            //     OR: [
+            //         {
+            //             title: {
+            //                 contains: "Ron",
+            //                 mode: "insensitive"
+            //             },
+
+            //         },
+
+
+            //         {
+            //             content: {
+            //                 contains: "Ro",
+            //                 mode: "insensitive"
+            //             }
+            //         }
+            //     ]
+            // },
+
+            // combining search (OR Operator) and filtering (AND)
+
+            where : {
+                //filtering & searching combined
+                AND : [
                     {
-                        title: "My Fourth Post",
+                        // searching
+                        OR : [
+                            {
+                                title : {
+                                    contains : "Ron",
+                                    mode : "insensitive"
+                                }
+                            },
+
+                            {
+                                content : {
+                                    contains : "Ron",
+                                    mode : "insensitive"
+                                }
+                                
+                            }
+                        ]
                     },
+
+                    // filtering
                     {
-                        content: "Ronaldo"
+                        title : "Ronaldo Nazario"
                     },
+
                     {
-                        tags: {
-                            has: "typescript"
-                        }
+                        content : "Ronaldo"
                     }
                 ]
             },
+
             include: {
                 author: {
                     omit: {
