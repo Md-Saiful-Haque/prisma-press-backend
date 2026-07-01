@@ -15,6 +15,26 @@ const createPost = async (payload: ICreatePostPayload, userId: string) => {
 const getAllPosts = async () => {
     const posts = await prisma.post.findMany(
         {
+            // where: {
+            //     title: "My Fourth Post",
+            //     content: Ronaldo
+            // },
+
+            where: {
+                AND: [
+                    {
+                        title: "My Fourth Post",
+                    },
+                    {
+                        content: "Ronaldo"
+                    },
+                    {
+                        tags: {
+                            has: "typescript"
+                        }
+                    }
+                ]
+            },
             include: {
                 author: {
                     omit: {
@@ -265,7 +285,7 @@ const getPostsStats = async () => {
                 totalComments,
                 totalApprovedComments,
                 totalRejectedComments,
-                totalPostViews : totalPostViewsAggregate._sum.views
+                totalPostViews: totalPostViewsAggregate._sum.views
             }
         }
     )
