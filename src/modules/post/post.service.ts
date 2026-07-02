@@ -2,6 +2,7 @@ import { title } from "node:process"
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
 import { ICreatePostPayload, IPostQuery, IUpdatePostPayload } from "./post.interface"
+import { PostWhereInput } from "../../../generated/prisma/models"
 
 
 const createPost = async (payload: ICreatePostPayload, userId: string) => {
@@ -19,6 +20,74 @@ const getAllPosts = async (query: IPostQuery) => {
     const skip = (page - 1 )* limit;
     const sortBy = query.sortBy ? query.sortBy : "createdAt";
     const sortOrder = query.sortOrder ? query.sortOrder : "desc"
+
+    const tags = query.tags ? JSON.parse(query.tags as string) : null
+
+    const tagsArray = Array.isArray(tags) ? tags : []
+
+    const andConditions : PostWhereInput[] = []
+
+    if(query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    title: {
+                        contains: query.searchTerm,
+                        mode: "insensitive"
+                    }
+
+                },
+                {
+                    content: {
+                        contains: query.searchTerm,
+                        mode: "insensitive"
+                    },
+                }
+            ]
+        })
+    }
+
+    if(query.title) {
+        andConditions.push({
+            title : query.title
+        })
+    }
+
+    if(query.content) {
+        andConditions.push({
+            content : query.content
+        })
+    }
+
+    if(query.authorId){
+        andConditions.push({
+            authorId : query.authorId
+        })
+    }
+
+    if(query.isFeatured) {
+        andConditions.push({
+            isFeatured: Boolean(query.isFeatured)
+        })
+    }
+
+    if(query.tags){
+        andConditions.push({
+            tags : {
+                hasSome : tagsArray
+            }
+        })
+    }
+
+    if(query.status) {
+        andConditions.push({
+            status: query.status
+        })
+    }
+
+    // andConditions.push({
+    //     isPremium : false
+    // })
 
     const posts = await prisma.post.findMany(
         {
@@ -135,34 +204,40 @@ const getAllPosts = async (query: IPostQuery) => {
             //     //fieldName : asc/desc
             // },
 
-            where: {
-                AND : [
+            // dynamic searching, filtering
 
-                    query.searchTerm ? {
-                        OR : [
-                            {
-                                title : {
-                                    contains : query.searchTerm,
-                                    mode : "insensitive"
-                                }
+            // where: {
+            //     AND : [
+
+            //         query.searchTerm ? {
+            //             OR : [
+            //                 {
+            //                     title : {
+            //                         contains : query.searchTerm,
+            //                         mode : "insensitive"
+            //                     }
                                
-                            },
-                            {
-                                content: {
-                                    contains: query.searchTerm,
-                                    mode: "insensitive"
-                                },
-                            }
-                        ]
-                    } : {},
+            //                 },
+            //                 {
+            //                     content: {
+            //                         contains: query.searchTerm,
+            //                         mode: "insensitive"
+            //                     },
+            //                 }
+            //             ]
+            //         } : {},
 
-                    //title filtering
+            //         //title filtering
 
-                    query.title ? {title: query.title} : {},
+            //         query.title ? {title: query.title} : {},
 
-                    //content filtering
-                    query.content ? { content : query.content} : {},
-                ]
+            //         //content filtering
+            //         query.content ? { content : query.content} : {},
+            //     ]
+            // },
+
+            where: {
+                AND : andConditions
             },
 
             // dynamic pagination and sorting
