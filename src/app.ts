@@ -7,6 +7,8 @@ import { userRouter } from "./modules/users/user.route";
 import { authRotes } from "./modules/auth/auth.route";
 import { postRoutes } from "./modules/post/post.route";
 import { commentRoutes } from "./modules/comment/comment.route";
+import { notFound } from "./middlewares/notFound";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 
 
 
@@ -29,5 +31,8 @@ app.use("/api/users", userRouter)
 app.use("/api/auth", authRotes)
 app.use("/api/posts", postRoutes)
 app.use("/api/comments", commentRoutes)
+
+app.use(notFound)
+app.use(globalErrorHandler)
 
 export default app;
